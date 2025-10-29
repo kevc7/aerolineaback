@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model usuario {
@@ -104,7 +105,7 @@ model vuelo {
   vl_hora_salida      DateTime @db.Time(6)
   vl_fecha_llegada    DateTime @db.Date
   vl_hora_llegada     DateTime @db.Time(6)
-  vl_duracion_minutos Int?     @default(dbgenerated("(EXTRACT(epoch FROM ((vl_fecha_llegada + vl_hora_llegada) - (vl_fecha_salida + vl_hora_salida))) / (60)::numeric)"))
+  vl_duracion_minutos Int?
   vl_estado           String?  @default("programado") @db.VarChar(20)
   vl_es_directo       Boolean? @default(true)
 
@@ -148,7 +149,7 @@ model reserva {
   cat_id                Int
   res_cantidad_asientos Int
   res_precio_unitario   Decimal   @db.Decimal(10, 2)
-  res_subtotal          Decimal?  @default(dbgenerated("((res_cantidad_asientos)::numeric * res_precio_unitario)")) @db.Decimal(10, 2)
+  res_subtotal          Decimal?  @db.Decimal(10, 2)
   res_fecha_reserva     DateTime? @default(now()) @db.Timestamp(6)
 
   orden     orden_compra     @relation(fields: [orden_id], references: [orden_id])
