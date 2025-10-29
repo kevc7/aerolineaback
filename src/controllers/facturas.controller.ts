@@ -33,7 +33,7 @@ export const crearFactura = async (req: Request, res: Response) => {
     }
 
     // Calcular subtotal e impuestos
-    const subtotal = orden.orden_total || 0;
+    const subtotal = Number(orden.orden_total) || 0;
     const impuestos = subtotal * 0.12; // 12% IVA (ajústalo si deseas)
     const total = subtotal + impuestos;
 
