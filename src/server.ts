@@ -19,16 +19,48 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Ruta de prueba para verificar que el servidor funciona
+app.get("/", (_req, res) => {
+  res.json({ 
+    message: "✅ Backend funcionando correctamente",
+    timestamp: new Date().toISOString(),
+    endpoints: [
+      "/api/auth",
+      "/api/vuelos",
+      "/api/reservas",
+      "/api/pagos",
+      "/api/ordenes",
+      "/api/facturas",
+      "/api/billetes",
+      "/api/pasajeros",
+      "/api/tarjetas",
+      "/api/ciudades"
+    ]
+  });
+});
+
+console.log("📋 Registrando rutas...");
 app.use("/api/auth", authRoutes);
+console.log("✅ Ruta /api/auth registrada");
 app.use("/api/vuelos", vuelosRoutes);
+console.log("✅ Ruta /api/vuelos registrada");
 app.use("/api/reservas", reservasRoutes);
+console.log("✅ Ruta /api/reservas registrada");
 app.use("/api/pagos", pagosRoutes);
+console.log("✅ Ruta /api/pagos registrada");
 app.use("/api/ordenes", ordenesRoutes);
+console.log("✅ Ruta /api/ordenes registrada");
 app.use("/api/facturas", facturasRoutes);
+console.log("✅ Ruta /api/facturas registrada");
 app.use("/api/billetes", billetesRoutes);
+console.log("✅ Ruta /api/billetes registrada");
 app.use("/api/pasajeros", pasajerosRoutes);
+console.log("✅ Ruta /api/pasajeros registrada");
 app.use("/api/tarjetas", tarjetasRoutes);
+console.log("✅ Ruta /api/tarjetas registrada");
 app.use("/api/ciudades", ciudadesRoutes);
+console.log("✅ Ruta /api/ciudades registrada");
+console.log("🎉 Todas las rutas registradas exitosamente");
 
 const PORT = process.env.PORT || 3000;
 
