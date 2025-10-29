@@ -63,9 +63,10 @@ console.log("✅ Ruta /api/ciudades registrada");
 console.log("🎉 Todas las rutas registradas exitosamente");
 
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 
-app.listen(PORT, async () => {
-  console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
+app.listen(PORT, HOST, async () => {
+  console.log(`🚀 Servidor corriendo en ${HOST}:${PORT}`);
   
   // Verificar configuración de email
   if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
