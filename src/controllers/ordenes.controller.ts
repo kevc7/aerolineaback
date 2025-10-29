@@ -10,9 +10,23 @@ export const crearOrden = async (req: Request, res: Response) => {
   try {
     const { usu_id } = req.body;
 
+    console.log("📦 Intentando crear orden para usuario:", usu_id);
+
     if (!usu_id) {
       return res.status(400).json({ message: "Falta el ID del usuario" });
     }
+
+    // Verificar que el usuario existe
+    const usuarioExiste = await prisma.usuario.findUnique({
+      where: { usu_id: Number(usu_id) },
+    });
+
+    if (!usuarioExiste) {
+      console.error(`❌ Usuario con ID ${usu_id} no existe`);
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    console.log("✅ Usuario encontrado:", usuarioExiste.usu_nombre);
 
     // Crear una nueva orden vacía (carrito)
     const nuevaOrden = await prisma.orden_compra.create({
@@ -23,13 +37,20 @@ export const crearOrden = async (req: Request, res: Response) => {
       },
     });
 
+    console.log("✅ Orden creada exitosamente:", nuevaOrden.orden_id);
+
     res.status(201).json({
       message: "Orden creada correctamente",
       orden: nuevaOrden,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Error al crear orden:", error);
-    res.status(500).json({ message: "Error al crear orden" });
+    console.error("❌ Error detallado:", error.message);
+    console.error("❌ Stack:", error.stack);
+    res.status(500).json({ 
+      message: "Error al crear orden",
+      error: error.message 
+    });
   }
 };
 
