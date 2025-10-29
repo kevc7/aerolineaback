@@ -66,6 +66,25 @@ export const crearReserva = async (req: Request, res: Response) => {
     });
     
     console.log(`   Asientos disponibles DESPUÉS: ${vueloCatActualizado?.vlcat_asientos_disponibles}`);
+    
+    // 🔥 ACTUALIZAR EL TOTAL DE LA ORDEN
+    // Calcular el nuevo total sumando todas las reservas de esta orden
+    const todasLasReservas = await prisma.reserva.findMany({
+      where: { orden_id: Number(orden_id) },
+      select: { res_subtotal: true },
+    });
+    
+    const nuevoTotal = todasLasReservas.reduce(
+      (sum, r) => sum + Number(r.res_subtotal || 0),
+      0
+    );
+    
+    await prisma.orden_compra.update({
+      where: { orden_id: Number(orden_id) },
+      data: { orden_total: nuevoTotal },
+    });
+    
+    console.log(`   💰 Total de la orden actualizado: $${nuevoTotal.toFixed(2)}`);
     console.log(`🎫 === RESERVA COMPLETADA ===\n`);
 
     res.status(201).json({
