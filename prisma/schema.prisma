@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model usuario {
+  usu_id             Int              @id @default(autoincrement())
+  usu_correo         String           @unique @db.VarChar(100)
+  usu_contrasenia    String           @db.VarChar(255)
+  usu_cedula         String           @unique @db.VarChar(20)
+  usu_nombre         String           @db.VarChar(100)
+  usu_telefono       String?          @db.VarChar(20)
+  usu_fecha_registro DateTime?        @default(now()) @db.Timestamp(6)
+  usu_activo         Boolean?         @default(true)
+
+  // Relaciones
+  ordenes  orden_compra[]
+  tarjetas tarjeta_credito[]
+}
+
+model tarjeta_credito {
+  tarj_id             Int       @id @default(autoincrement())
+  usu_id              Int
+  tarj_numero         String    @db.VarChar(255)
+  tarj_titular        String    @db.VarChar(100)
+  tarj_vencimiento    DateTime  @db.Date
+  tarj_tipo           String    @db.VarChar(20)
+  tarj_activa         Boolean?  @default(true)
+  tarj_fecha_registro DateTime? @default(now()) @db.Timestamp(6)
+
+  // Relaciones
+  usuario usuario @relation(fields: [usu_id], references: [usu_id])
+  pagos   pago[]
+}
+
+model orden_compra {
+  orden_id             Int       @id @default(autoincrement())
+  usu_id               Int
+  orden_fecha_creacion DateTime? @default(now()) @db.Timestamp(6)
+  orden_estado         String?   @default("carrito") @db.VarChar(20)
+  orden_total          Decimal?  @default(0) @db.Decimal(10, 2)
+  orden_tipo_entrega   String?   @default("recoger_aeropuerto") @db.VarChar(30)
+
+  // Relaciones
+  usuario usuario @relation(fields: [usu_id], references: [usu_id])
+  reservas reserva[]
+  pagos    pago[]
+  factura  factura?
+}
+
+model pago {
+  pago_id                  Int       @id @default(autoincrement())
+  orden_id                 Int
+  tarj_id                  Int
+  pago_monto               Decimal   @db.Decimal(10, 2)
+  pago_fecha               DateTime? @default(now()) @db.Timestamp(6)
+  pago_estado              String?   @default("procesando") @db.VarChar(20)
+  pago_codigo_autorizacion String?   @db.VarChar(50)
+  pago_metodo              String?   @default("tarjeta_credito") @db.VarChar(30)
+
+  // Relaciones
+  orden  orden_compra     @relation(fields: [orden_id], references: [orden_id])
+  tarjeta tarjeta_credito @relation(fields: [tarj_id], references: [tarj_id])
+  factura factura?
+}
+
+model factura {
+  fac_id            Int       @id @default(autoincrement())
+  orden_id          Int       @unique(map: "uq_factura_orden")
+  pago_id           Int       @unique(map: "uq_factura_pago")
+  fac_numero        String    @unique @db.VarChar(50)
+  fac_fecha_emision DateTime? @default(now()) @db.Timestamp(6)
+  fac_subtotal      Decimal   @db.Decimal(10, 2)
+  fac_impuestos     Decimal?  @default(0) @db.Decimal(10, 2)
+  fac_total         Decimal   @db.Decimal(10, 2)
+
+  // Relaciones
+  orden  orden_compra @relation(fields: [orden_id], references: [orden_id])
+  pago   pago         @relation(fields: [pago_id], references: [pago_id])
+  billetes billete[]
+}
+
+model aerolinea {
+  aero_id     Int      @id @default(autoincrement())
+  aero_nom    String   @unique @db.VarChar(100)
+  aero_codigo String   @unique @db.VarChar(10)
+  aero_info   String?
+  aero_activa Boolean? @default(true)
+
+  vuelos vuelo[]
+}
+
+model vuelo {
+  vl_id               Int      @id @default(autoincrement())
+  vl_numero           String   @db.VarChar(20)
+  aero_id             Int
+  ciu_origen_id       Int
+  ciu_destino_id      Int
+  vl_fecha_salida     DateTime @db.Date
+  vl_hora_salida      DateTime @db.Time(6)
+  vl_fecha_llegada    DateTime @db.Date
+  vl_hora_llegada     DateTime @db.Time(6)
+  vl_duracion_minutos Int?     @default(dbgenerated("(EXTRACT(epoch FROM ((vl_fecha_llegada + vl_hora_llegada) - (vl_fecha_salida + vl_hora_salida))) / (60)::numeric)"))
+  vl_estado           String?  @default("programado") @db.VarChar(20)
+  vl_es_directo       Boolean? @default(true)
+
+  // Relaciones
+  aerolinea aerolinea @relation(fields: [aero_id], references: [aero_id])
+  origen    ciudad    @relation("VueloOrigen", fields: [ciu_origen_id], references: [ciu_id])
+  destino   ciudad    @relation("VueloDestino", fields: [ciu_destino_id], references: [ciu_id])
+  reservas  reserva[]
+  categorias vuelo_categoria[]
+
+  @@unique([vl_numero, vl_fecha_salida], map: "uq_vuelo_numero_fecha")
+}
+
+model categoria_asiento {
+  cat_id          Int     @id @default(autoincrement())
+  cat_nombre      String  @unique @db.VarChar(50)
+  cat_descripcion String?
+
+  vuelo_categorias vuelo_categoria[]
+  reservas         reserva[]
+}
+
+model vuelo_categoria {
+  vlcat_id                   Int     @id @default(autoincrement())
+  vl_id                      Int
+  cat_id                     Int
+  vlcat_asientos_totales     Int
+  vlcat_asientos_disponibles Int
+  vlcat_precio_base          Decimal @db.Decimal(10, 2)
+
+  vuelo      vuelo             @relation(fields: [vl_id], references: [vl_id])
+  categoria  categoria_asiento @relation(fields: [cat_id], references: [cat_id])
+
+  @@unique([vl_id, cat_id], map: "uq_vuelo_categoria")
+}
+
+model reserva {
+  res_id                Int       @id @default(autoincrement())
+  orden_id              Int
+  vl_id                 Int
+  cat_id                Int
+  res_cantidad_asientos Int
+  res_precio_unitario   Decimal   @db.Decimal(10, 2)
+  res_subtotal          Decimal?  @default(dbgenerated("((res_cantidad_asientos)::numeric * res_precio_unitario)")) @db.Decimal(10, 2)
+  res_fecha_reserva     DateTime? @default(now()) @db.Timestamp(6)
+
+  orden     orden_compra     @relation(fields: [orden_id], references: [orden_id])
+  vuelo     vuelo            @relation(fields: [vl_id], references: [vl_id])
+  categoria categoria_asiento @relation(fields: [cat_id], references: [cat_id])
+  pasajeros pasajero[]
+  billetes  billete[]
+}
+
+model pasajero {
+  pas_id     Int     @id @default(autoincrement())
+  res_id     Int
+  pas_nombre String  @db.VarChar(100)
+  pas_cedula String  @db.VarChar(20)
+  pas_edad   Int?
+  pas_tipo   String? @default("adulto") @db.VarChar(20)
+
+  reserva  reserva  @relation(fields: [res_id], references: [res_id])
+  billetes billete[]
+}
+
+model billete {
+  bill_id            Int       @id @default(autoincrement())
+  res_id             Int
+  pas_id             Int
+  fac_id             Int
+  bill_codigo        String    @unique @db.VarChar(50)
+  bill_fecha_emision DateTime? @default(now()) @db.Timestamp(6)
+  bill_estado        String?   @default("emitido") @db.VarChar(20)
+
+  reserva  reserva  @relation(fields: [res_id], references: [res_id])
+  pasajero pasajero @relation(fields: [pas_id], references: [pas_id])
+  factura  factura  @relation(fields: [fac_id], references: [fac_id])
+
+  @@unique([res_id, pas_id], map: "uq_billete_pasajero_reserva")
+}
+
+model pais {
+  pais_id          Int    @id @default(autoincrement())
+  pais_nom         String @unique @db.VarChar(100)
+  pais_codigo_iso  String @unique @db.Char(2)
+  pais_codigo_iso3 String @unique @db.Char(3)
+
+  provincias provincia[]
+}
+
+model provincia {
+  prov_id  Int    @id @default(autoincrement())
+  prov_nom String @db.VarChar(100)
+  pais_id  Int
+
+  pais     pais     @relation(fields: [pais_id], references: [pais_id])
+  ciudades ciudad[]
+
+  @@unique([prov_nom, pais_id], map: "uq_provincia_pais")
+}
+
+model ciudad {
+  ciu_id                Int     @id @default(autoincrement())
+  ciu_nom               String  @db.VarChar(100)
+  prov_id               Int
+  ciu_codigo_aeropuerto String? @unique(map: "uq_codigo_aeropuerto") @db.VarChar(5)
+
+  provincia provincia @relation(fields: [prov_id], references: [prov_id])
+
+  // Relaciones inversas para vuelos origen/destino
+  vuelos_origen  vuelo[] @relation("VueloOrigen")
+  vuelos_destino vuelo[] @relation("VueloDestino")
+
+  @@unique([ciu_nom, prov_id], map: "uq_ciudad_provincia")
+}
