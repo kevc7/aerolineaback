@@ -321,6 +321,102 @@ async function main() {
       },
     });
 
+    // 🆕 Más vuelos con diferentes horarios
+    const en7dias = new Date(hoy.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const en10dias = new Date(hoy.getTime() + 10 * 24 * 60 * 60 * 1000);
+    const en15dias = new Date(hoy.getTime() + 15 * 24 * 60 * 60 * 1000);
+    const en30dias = new Date(hoy.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    const vuelo5 = await prisma.vuelo.create({
+      data: {
+        vl_numero: "LA-201",
+        aero_id: latam.aero_id,
+        ciu_origen_id: quito.ciu_id,
+        ciu_destino_id: bogota.ciu_id,
+        vl_fecha_salida: en7dias,
+        vl_hora_salida: new Date("2025-01-01T14:00:00"),
+        vl_fecha_llegada: en7dias,
+        vl_hora_llegada: new Date("2025-01-01T16:30:00"),
+        vl_estado: "programado",
+        vl_es_directo: true,
+      },
+    });
+
+    const vuelo6 = await prisma.vuelo.create({
+      data: {
+        vl_numero: "AV-505",
+        aero_id: avianca.aero_id,
+        ciu_origen_id: lima_ciudad.ciu_id,
+        ciu_destino_id: quito.ciu_id,
+        vl_fecha_salida: en10dias,
+        vl_hora_salida: new Date("2025-01-01T06:30:00"),
+        vl_fecha_llegada: en10dias,
+        vl_hora_llegada: new Date("2025-01-01T10:00:00"),
+        vl_estado: "programado",
+        vl_es_directo: true,
+      },
+    });
+
+    const vuelo7 = await prisma.vuelo.create({
+      data: {
+        vl_numero: "VB-777",
+        aero_id: viva_air.aero_id,
+        ciu_origen_id: bogota.ciu_id,
+        ciu_destino_id: guayaquil.ciu_id,
+        vl_fecha_salida: en15dias,
+        vl_hora_salida: new Date("2025-01-01T18:00:00"),
+        vl_fecha_llegada: en15dias,
+        vl_hora_llegada: new Date("2025-01-01T23:30:00"),
+        vl_estado: "programado",
+        vl_es_directo: true,
+      },
+    });
+
+    const vuelo8 = await prisma.vuelo.create({
+      data: {
+        vl_numero: "LA-888",
+        aero_id: latam.aero_id,
+        ciu_origen_id: guayaquil.ciu_id,
+        ciu_destino_id: lima_ciudad.ciu_id,
+        vl_fecha_salida: en30dias,
+        vl_hora_salida: new Date("2025-01-01T09:00:00"),
+        vl_fecha_llegada: en30dias,
+        vl_hora_llegada: new Date("2025-01-01T13:00:00"),
+        vl_estado: "programado",
+        vl_es_directo: true,
+      },
+    });
+
+    const vuelo9 = await prisma.vuelo.create({
+      data: {
+        vl_numero: "AV-999",
+        aero_id: avianca.aero_id,
+        ciu_origen_id: quito.ciu_id,
+        ciu_destino_id: guayaquil.ciu_id,
+        vl_fecha_salida: manana,
+        vl_hora_salida: new Date("2025-01-01T16:00:00"),
+        vl_fecha_llegada: manana,
+        vl_hora_llegada: new Date("2025-01-01T17:30:00"),
+        vl_estado: "programado",
+        vl_es_directo: true,
+      },
+    });
+
+    const vuelo10 = await prisma.vuelo.create({
+      data: {
+        vl_numero: "VB-111",
+        aero_id: viva_air.aero_id,
+        ciu_origen_id: lima_ciudad.ciu_id,
+        ciu_destino_id: bogota.ciu_id,
+        vl_fecha_salida: en3dias,
+        vl_hora_salida: new Date("2025-01-01T07:00:00"),
+        vl_fecha_llegada: en3dias,
+        vl_hora_llegada: new Date("2025-01-01T12:00:00"),
+        vl_estado: "programado",
+        vl_es_directo: true,
+      },
+    });
+
     // ============================================================
     // 10. CREAR CATEGORÍAS DE VUELO (precios y asientos)
     // ============================================================
@@ -407,6 +503,132 @@ async function main() {
         vlcat_asientos_totales: 30,
         vlcat_asientos_disponibles: 28,
         vlcat_precio_base: 350,
+      },
+    });
+
+    // Vuelo 5 - LA-201
+    await prisma.vuelo_categoria.create({
+      data: {
+        vl_id: vuelo5.vl_id,
+        cat_id: economica.cat_id,
+        vlcat_asientos_totales: 150,
+        vlcat_asientos_disponibles: 130,
+        vlcat_precio_base: 180,
+      },
+    });
+
+    await prisma.vuelo_categoria.create({
+      data: {
+        vl_id: vuelo5.vl_id,
+        cat_id: ejecutiva.cat_id,
+        vlcat_asientos_totales: 40,
+        vlcat_asientos_disponibles: 35,
+        vlcat_precio_base: 400,
+      },
+    });
+
+    // Vuelo 6 - AV-505
+    await prisma.vuelo_categoria.create({
+      data: {
+        vl_id: vuelo6.vl_id,
+        cat_id: economica.cat_id,
+        vlcat_asientos_totales: 120,
+        vlcat_asientos_disponibles: 100,
+        vlcat_precio_base: 220,
+      },
+    });
+
+    await prisma.vuelo_categoria.create({
+      data: {
+        vl_id: vuelo6.vl_id,
+        cat_id: ejecutiva.cat_id,
+        vlcat_asientos_totales: 30,
+        vlcat_asientos_disponibles: 25,
+        vlcat_precio_base: 480,
+      },
+    });
+
+    await prisma.vuelo_categoria.create({
+      data: {
+        vl_id: vuelo6.vl_id,
+        cat_id: primera.cat_id,
+        vlcat_asientos_totales: 10,
+        vlcat_asientos_disponibles: 10,
+        vlcat_precio_base: 900,
+      },
+    });
+
+    // Vuelo 7 - VB-777
+    await prisma.vuelo_categoria.create({
+      data: {
+        vl_id: vuelo7.vl_id,
+        cat_id: economica.cat_id,
+        vlcat_asientos_totales: 180,
+        vlcat_asientos_disponibles: 150,
+        vlcat_precio_base: 110,
+      },
+    });
+
+    // Vuelo 8 - LA-888
+    await prisma.vuelo_categoria.create({
+      data: {
+        vl_id: vuelo8.vl_id,
+        cat_id: economica.cat_id,
+        vlcat_asientos_totales: 140,
+        vlcat_asientos_disponibles: 120,
+        vlcat_precio_base: 195,
+      },
+    });
+
+    await prisma.vuelo_categoria.create({
+      data: {
+        vl_id: vuelo8.vl_id,
+        cat_id: ejecutiva.cat_id,
+        vlcat_asientos_totales: 35,
+        vlcat_asientos_disponibles: 30,
+        vlcat_precio_base: 420,
+      },
+    });
+
+    // Vuelo 9 - AV-999
+    await prisma.vuelo_categoria.create({
+      data: {
+        vl_id: vuelo9.vl_id,
+        cat_id: economica.cat_id,
+        vlcat_asientos_totales: 100,
+        vlcat_asientos_disponibles: 90,
+        vlcat_precio_base: 160,
+      },
+    });
+
+    await prisma.vuelo_categoria.create({
+      data: {
+        vl_id: vuelo9.vl_id,
+        cat_id: ejecutiva.cat_id,
+        vlcat_asientos_totales: 25,
+        vlcat_asientos_disponibles: 22,
+        vlcat_precio_base: 380,
+      },
+    });
+
+    // Vuelo 10 - VB-111
+    await prisma.vuelo_categoria.create({
+      data: {
+        vl_id: vuelo10.vl_id,
+        cat_id: economica.cat_id,
+        vlcat_asientos_totales: 160,
+        vlcat_asientos_disponibles: 140,
+        vlcat_precio_base: 130,
+      },
+    });
+
+    await prisma.vuelo_categoria.create({
+      data: {
+        vl_id: vuelo10.vl_id,
+        cat_id: ejecutiva.cat_id,
+        vlcat_asientos_totales: 30,
+        vlcat_asientos_disponibles: 28,
+        vlcat_precio_base: 360,
       },
     });
 

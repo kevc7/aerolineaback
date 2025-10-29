@@ -3,6 +3,54 @@ import { prisma } from "../config/db";
 
 /**
  * ==========================================
+ *  CALCULAR ESTADO DINÁMICO DEL VUELO
+ *  Basado en fecha/hora actual vs fecha/hora de salida
+ * ==========================================
+ */
+const calcularEstadoVuelo = (fechaSalida: Date, horaSalida: Date): string => {
+  const ahora = new Date();
+  
+  // Combinar fecha y hora de salida en una sola fecha
+  const fechaHoraSalida = new Date(fechaSalida);
+  const horaObj = new Date(horaSalida);
+  
+  fechaHoraSalida.setUTCHours(
+    horaObj.getUTCHours(),
+    horaObj.getUTCMinutes(),
+    0,
+    0
+  );
+  
+  // Calcular diferencia en horas
+  const diferenciaHoras = (fechaHoraSalida.getTime() - ahora.getTime()) / (1000 * 60 * 60);
+  
+  if (diferenciaHoras < -2) {
+    return 'completado'; // El vuelo ya pasó hace más de 2 horas
+  } else if (diferenciaHoras < 0) {
+    return 'en_vuelo'; // El vuelo está en el aire
+  } else if (diferenciaHoras <= 2) {
+    return 'abordando'; // Faltan menos de 2 horas - abordaje
+  } else if (diferenciaHoras <= 24) {
+    return 'en_hora'; // Faltan menos de 24 horas
+  } else {
+    return 'programado'; // Faltan más de 24 horas
+  }
+};
+
+/**
+ * ==========================================
+ *  APLICAR ESTADO CALCULADO A LOS VUELOS
+ * ==========================================
+ */
+const aplicarEstadoCalculado = (vuelos: any[]) => {
+  return vuelos.map(vuelo => ({
+    ...vuelo,
+    vl_estado: calcularEstadoVuelo(vuelo.vl_fecha_salida, vuelo.vl_hora_salida)
+  }));
+};
+
+/**
+ * ==========================================
  *  OBTENER TODOS LOS VUELOS
  * ==========================================
  */
@@ -20,7 +68,10 @@ export const obtenerVuelos = async (_req: Request, res: Response) => {
       orderBy: { vl_fecha_salida: "asc" },
     });
 
-    res.json(vuelos);
+    // Aplicar estado calculado dinámicamente
+    const vuelosConEstado = aplicarEstadoCalculado(vuelos);
+
+    res.json(vuelosConEstado);
   } catch (error) {
     console.error("❌ Error al obtener vuelos:", error);
     res.status(500).json({ message: "Error al obtener vuelos" });
@@ -50,7 +101,10 @@ export const obtenerVueloPorId = async (req: Request, res: Response) => {
     if (!vuelo)
       return res.status(404).json({ message: "Vuelo no encontrado" });
 
-    res.json(vuelo);
+    // Aplicar estado calculado dinámicamente
+    const vueloConEstado = aplicarEstadoCalculado([vuelo])[0];
+
+    res.json(vueloConEstado);
   } catch (error) {
     console.error("❌ Error al obtener vuelo:", error);
     res.status(500).json({ message: "Error al obtener vuelo" });
@@ -151,7 +205,10 @@ export const buscarVuelos = async (req: Request, res: Response) => {
         });
     }
 
-    res.json(vuelos);
+    // Aplicar estado calculado dinámicamente
+    const vuelosConEstado = aplicarEstadoCalculado(vuelos);
+
+    res.json(vuelosConEstado);
   } catch (error) {
     console.error("❌ Error al buscar vuelos:", error);
     res.status(500).json({ message: "Error al buscar vuelos" });
@@ -209,7 +266,10 @@ export const buscarPorHorarios = async (req: Request, res: Response) => {
         .json({ message: "No hay vuelos en ese horario y fecha" });
     }
 
-    res.json(vuelos);
+    // Aplicar estado calculado dinámicamente
+    const vuelosConEstado = aplicarEstadoCalculado(vuelos);
+
+    res.json(vuelosConEstado);
   } catch (error) {
     console.error("❌ Error al buscar por horarios:", error);
     res.status(500).json({ message: "Error al buscar por horarios" });
@@ -293,7 +353,10 @@ export const buscarPorTarifas = async (req: Request, res: Response) => {
       (a, b) => (a.precio_minimo - b.precio_minimo) * ordenamiento
     );
 
-    res.json(vuelosConPrecioMinimo);
+    // Aplicar estado calculado dinámicamente
+    const vuelosConEstado = aplicarEstadoCalculado(vuelosConPrecioMinimo);
+
+    res.json(vuelosConEstado);
   } catch (error) {
     console.error("❌ Error al buscar por tarifas:", error);
     res.status(500).json({ message: "Error al buscar por tarifas" });
@@ -354,7 +417,10 @@ export const vuelosDisponibles = async (req: Request, res: Response) => {
       });
     }
 
-    res.json(vuelosConAsientos);
+    // Aplicar estado calculado dinámicamente
+    const vuelosConEstado = aplicarEstadoCalculado(vuelosConAsientos);
+
+    res.json(vuelosConEstado);
   } catch (error) {
     console.error("❌ Error al obtener vuelos disponibles:", error);
     res.status(500).json({ message: "Error al obtener vuelos disponibles" });
