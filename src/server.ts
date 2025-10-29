@@ -69,20 +69,28 @@ app.listen(PORT, HOST, async () => {
   console.log(`🚀 Servidor corriendo en ${HOST}:${PORT}`);
   
   // Verificar configuración de email
-  if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-    console.log('\n📧 Verificando configuración de email...');
+  console.log('\n📧 Verificando configuración de email...');
+  
+  if (process.env.RESEND_API_KEY) {
+    console.log('✅ Usando Resend para envío de emails (Producción)');
+    const emailConfigOk = await verificarConfiguracion();
+    if (emailConfigOk) {
+      console.log('✅ Servicio de email listo para usar\n');
+    } else {
+      console.log('⚠️  Error al configurar Resend\n');
+    }
+  } else if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+    console.log('📮 Usando Nodemailer/Gmail (Desarrollo Local)');
     const emailConfigOk = await verificarConfiguracion();
     if (emailConfigOk) {
       console.log('✅ Servicio de email listo para usar\n');
     } else {
       console.log('⚠️  Servicio de email no configurado correctamente');
-      console.log('   Los códigos de verificación solo se mostrarán en consola');
-      console.log('   Ver CONFIG_EMAIL.md para instrucciones de configuración\n');
+      console.log('   Los códigos de verificación solo se mostrarán en consola\n');
     }
   } else {
-    console.log('\n⚠️  Variables de email no configuradas');
-    console.log('   EMAIL_USER y EMAIL_PASSWORD no encontradas en .env');
-    console.log('   Los códigos solo se mostrarán en consola');
-    console.log('   Ver CONFIG_EMAIL.md para instrucciones\n');
+    console.log('⚠️  No hay servicio de email configurado');
+    console.log('   Agrega RESEND_API_KEY para producción');
+    console.log('   O EMAIL_USER/EMAIL_PASSWORD para desarrollo\n');
   }
 });
