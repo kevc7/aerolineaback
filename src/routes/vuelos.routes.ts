@@ -10,6 +10,8 @@ import {
 
 const router = Router();
 
+// Ruta raíz - listar todos los vuelos
+router.get("/", obtenerVuelos);
 router.get("/obtener", obtenerVuelos);
 router.get("/disponibles", vuelosDisponibles);
 router.get("/horarios", buscarPorHorarios);
